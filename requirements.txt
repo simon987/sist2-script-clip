@@ -1,0 +1,7 @@
+ftfy
+regex
+tqdm
+git+https://github.com/openai/CLIP.git
+git+https://github.com/simon987/sist2-python.git
+torch
+typer

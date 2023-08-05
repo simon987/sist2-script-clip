@@ -78,8 +78,11 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
             f"Generated embeddings for {doc.rel_path}"
         )
 
+    print("Syncing tag table")
     index.sync_tag_table()
     index.commit()
+
+    print("Done!")
 
 
 if __name__ == "__main__":

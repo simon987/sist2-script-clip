@@ -1,4 +1,5 @@
 from io import BytesIO
+from sys import stderr
 
 import typer
 import clip
@@ -6,7 +7,7 @@ import torch
 from PIL import Image
 from torch import nn
 
-from sist2 import Sist2Index, serialize_float_array
+from sist2 import Sist2Index, serialize_float_array, print_progress
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -41,7 +42,11 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         type="flat"
     )
 
-    for doc in index.document_iter("json_data->>'mime' LIKE 'image/%'"):
+    where = "json_data->>'mime' LIKE 'image/%'"
+    total = index.document_count(where)
+    done = 0
+
+    for doc in index.document_iter(where):
         j = doc.json_data
 
         try:
@@ -51,7 +56,7 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
                 image = Image.open(doc.path)
             image = preprocess(image).unsqueeze(0).to(DEVICE)
         except Exception as e:
-            print(f"Could not load image {doc.rel_path}: {e}")
+            print(f"Could not load image {doc.rel_path}: {e}", file=stderr)
             continue
 
         with torch.no_grad():
@@ -77,6 +82,8 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         print(
             f"Generated embeddings for {doc.rel_path}"
         )
+        done += 1
+        print_progress(done=done, count=total)
 
     print("Syncing tag table")
     index.sync_tag_table()

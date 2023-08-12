@@ -70,8 +70,10 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
             if "tag" not in doc.json_data:
                 doc.json_data["tag"] = top_n_tags
             else:
-                doc.json_data["tag"] = list(filter(lambda t: not t.startswith("clip."), doc.json_data["tag"])) \
-                    .extend(top_n_tags)
+                doc.json_data["tag"] = [
+                    *(t for t in doc.json_data["tag"] if not t.startswith("clip.")),
+                    *top_n_tags
+                ]
 
             index.update_document(doc)
 

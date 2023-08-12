@@ -67,7 +67,7 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
             top_n = reversed(tags_cos_sim.argsort()[-num_tags:])
             top_n_tags = [f"clip.{tags[i]}.{color}" for i in top_n]
 
-            if "tags" not in doc.json_data:
+            if "tag" not in doc.json_data:
                 doc.json_data["tag"] = top_n_tags
             else:
                 doc.json_data["tag"] = list(filter(lambda t: not t.startswith("clip."), doc.json_data["tag"])) \

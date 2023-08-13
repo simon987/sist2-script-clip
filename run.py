@@ -42,7 +42,7 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         type="flat"
     )
 
-    where = "json_data->>'mime' LIKE 'image/%'"
+    where = "json_data->>'mime' LIKE 'image/%' OR json_data->>'mime' LIKE 'video/%'"
     total = index.document_count(where)
     done = 0
 
@@ -50,7 +50,7 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         j = doc.json_data
 
         try:
-            if "parent" in j:
+            if "parent" in j or j["mime"].startswith("video/"):
                 image = Image.open(BytesIO(index.get_thumbnail(doc.id)))
             else:
                 image = Image.open(doc.path)

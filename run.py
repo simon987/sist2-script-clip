@@ -11,6 +11,8 @@ from sist2 import Sist2Index, serialize_float_array, print_progress
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+print(f"Using compute device {DEVICE}")
+
 
 def load_tag_embeddings(tag_file, model):
     with open(tag_file) as f:
@@ -33,16 +35,19 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
 
     index = Sist2Index(index_file)
 
+    # Only consider documents that were modified since the last run of this script
+    clip_version = index.get("clip_version", default=0)
+
     index.register_model(
         id=1,
         name="CLIP",
-        url="https://github.com/simon987/sist2-models/raw/main/clip/models/clip-vit-base-patch32-q8.onnx",
+        url="https://raw.githubusercontent.com/simon987/sist2-models/main/clip/models/clip-vit-base-patch32-q8.onnx",
         path="idx_512.clip",
         size=512,
         type="flat"
     )
 
-    where = "json_data->>'mime' LIKE 'image/%' OR json_data->>'mime' LIKE 'video/%'"
+    where = f"version > {clip_version} AND (json_data->>'mime' LIKE 'image/%' OR json_data->>'mime' LIKE 'video/%')"
     total = index.document_count(where)
     done = 0
 
@@ -86,6 +91,8 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         )
         done += 1
         print_progress(done=done, count=total)
+
+    index.set("clip_version", index.versions[-1].id)
 
     print("Syncing tag table")
     index.sync_tag_table()

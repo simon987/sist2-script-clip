@@ -47,7 +47,8 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         type="flat"
     )
 
-    where = f"version > {clip_version} AND (json_data->>'mime' LIKE 'image/%' OR json_data->>'mime' LIKE 'video/%')"
+    where = f"version > {clip_version} AND (json_extract(json_data, '$.mime') LIKE 'image/%' OR " \
+            f"json_extract(json_data, '$.mime') LIKE 'video/%')"
     total = index.document_count(where)
     done = 0
 

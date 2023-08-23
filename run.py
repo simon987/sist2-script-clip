@@ -57,7 +57,12 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
 
         try:
             if "parent" in j or j["mime"].startswith("video/"):
-                image = Image.open(BytesIO(index.get_thumbnail(doc.id)))
+
+                tn = index.get_thumbnail(doc.id)
+                if not tn:
+                    raise Exception("Could not find thumbnail")
+
+                image = Image.open(BytesIO(tn))
             else:
                 image = Image.open(doc.path)
             image = preprocess(image).unsqueeze(0).to(DEVICE)

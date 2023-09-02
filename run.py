@@ -47,16 +47,15 @@ def main(index_file, clip_model: str = "ViT-B/32", tags_file: str = "general.txt
         type="flat"
     )
 
-    where = f"version > {clip_version} AND (json_extract(json_data, '$.mime') LIKE 'image/%' OR " \
-            f"json_extract(json_data, '$.mime') LIKE 'video/%')"
+    where = f"version > {clip_version} AND ((SELECT name FROM mime WHERE id=document.mime) LIKE 'image/%' OR " \
+            f"(SELECT name FROM mime WHERE id=document.mime) LIKE 'video/%')"
     total = index.document_count(where)
     done = 0
 
     for doc in index.document_iter(where):
-        j = doc.json_data
 
         try:
-            if "parent" in j or j["mime"].startswith("video/"):
+            if doc.parent or doc.mime.startswith("video/"):
 
                 tn = index.get_thumbnail(doc.id)
                 if not tn:
